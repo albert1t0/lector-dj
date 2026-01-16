@@ -5,9 +5,11 @@ Este proyecto utiliza Inteligencia Artificial (Gemini 1.5 Flash) para automatiza
 ## Características
 
 - **Reconocimiento Multimodal**: Identifica IDs, facturas, recibos de impuestos y registros de propiedad directamente desde imágenes y PDFs.
+- **Procesamiento Seguro**: Sistema de extracción de ZIPs con protección contra vulnerabilidades de "Directory Traversal".
 - **Procesamiento por Lotes**: Escanea carpetas locales o archivos ZIP para procesar múltiples documentos a la vez.
 - **Aprendizaje por Ejemplos (Few-shot)**: Utiliza documentos de referencia para mejorar la precisión en formatos específicos de un país.
 - **Salida Estructurada**: Genera resultados en formato JSON para facilitar la integración con otros sistemas.
+- **Basado en Calidad**: Incluye una suite de pruebas unitarias para garantizar la robustez del manejo de archivos.
 
 ## Requisitos Previos
 
