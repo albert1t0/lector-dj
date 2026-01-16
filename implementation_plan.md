@@ -32,31 +32,36 @@ Based on your requirements, I recommend a **Multi-modal LLM approach (using Gemi
 ### [Common]
 - [x] Initialize Git repository.
 - [x] Create `.gitignore` to exclude large image files and sensitive `.env`.
-- [x] Create `README.md`.
+- [x] Create `README.md` and basic project documentation.
+- [x] Publish to GitHub.
 
-### [Backend - Python]
-The system will be a CLI-based tool or a simple script that processes batches of files.
+### [Backend - Python] [DONE]
+The system is now a robust CLI tool that processes batches of files with high security and reliability.
 
-#### [NEW] [main.py](file:///home/albert1t0/Documentos/GitHub/lector-dj/main.py)
-Logic for scanning folders/extracting ZIPs and calling the Gemini API.
+#### [x] [main.py](file:///home/albert1t0/Documentos/GitHub/lector-dj/main.py)
+Logic for scanning folders/extracting ZIPs and calling the Gemini API with few-shot learning.
 
-#### [NEW] [examples/](file:///home/albert1t0/Documentos/GitHub/lector-dj/examples/)
-Folder to store the "guide" documents (one or two samples per type).
+#### [x] [examples/](file:///home/albert1t0/Documentos/GitHub/lector-dj/examples/)
+Folder-based category system for "guide" documents.
 
-#### [NEW] [requirements.txt](file:///home/albert1t0/Documentos/GitHub/lector-dj/requirements.txt)
-Dependencies:
-- `google-generativeai` (for Gemini)
-- `pdf2image`
-- `pillow` (for image handling)
-- `python-dotenv`
+#### [x] [requirements.txt](file:///home/albert1t0/Documentos/GitHub/lector-dj/requirements.txt)
+All dependencies managed and tested.
+
+---
+
+## Phase 2: Detailed Data Extraction (Next Steps)
+
+1.  **Field Extraction**: Move beyond classification to extract specific data (e.g., Invoice numbers, dates, Tax IDs, names).
+2.  **Database Integration**: Store extracted metadata in a structured database (SQL or NoSQL).
+3.  **UI/Dashboard**: Develop a simple web interface to visualize results and review classification errors.
 
 ---
 
 ## Verification Plan
 
-### Automated Tests
-- Create a test suite that passes sample (anonymized) documents and verifies the classification accuracy.
-- `pytest` for unit testing the extraction logic.
+### Automated Tests [PASSED]
+- [x] Unit tests for file handling and secure ZIP extraction (`tests/test_file_handler.py`).
+- [x] Unit tests for Gemini integration and few-shot classification with API mocking (`tests/test_classification.py`).
 
-### Manual Verification
-- Upload 5 different document types and verify that the system correctly identifies them.
+### Manual Verification [PENDING USER DATA]
+- [ ] Upload real sample documents from your country into `input/` and verify accuracy.
