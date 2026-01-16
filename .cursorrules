@@ -1,0 +1,21 @@
+# Project Rules - Lector-DJ
+
+## Git & Workflow
+- **Branching**: Every new feature or implementation must be done in a separate git branch. Never commit directly to `main`.
+- **Documentation**: After implementing a functionality, the `README.md` must be updated to reflect the changes and instructions.
+
+## Quality Assurance
+- **Testing**: Every new functionality must include a corresponding unit test.
+- **Verification**: Run tests before merging or completing a task.
+
+## Security
+- **Security First**: Be extremely strict with security. 
+    - Never hardcode API keys or secrets.
+    - Use environment variables (`.env`).
+    - Validate all inputs (filenames, paths, etc.).
+    - Ensure temporary files are cleaned up.
+
+## Technology Stack
+- **Language**: Python 3.10+
+- **AI**: Google Gemini 1.5 Flash
+- **Processing**: `pdf2image`, `PIL`, `python-dotenv`
