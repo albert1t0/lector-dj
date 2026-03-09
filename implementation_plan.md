@@ -23,7 +23,8 @@ Based on your requirements, I recommend a **Multi-modal LLM approach (using Gemi
 3.  **Classification Agent**:
     - Uses the reference documents to build a "context" for the AI, improving accuracy for specific local formats.
 4.  **Output Layer**:
-    - Organized output folder (e.g., `output/{category}/`) or a `results.json` log.
+    - Generates a `results.json` log with raw extraction results.
+    - Generates a `manifest.csv` file summarizing the results for easy spreadsheet ingestion.
 
 ---
 
@@ -39,7 +40,7 @@ Based on your requirements, I recommend a **Multi-modal LLM approach (using Gemi
 The system is now a robust CLI tool that processes batches of files with high security and reliability.
 
 #### [x] [main.py](file:///home/albert1t0/Documentos/GitHub/lector-dj/main.py)
-Logic for scanning folders/extracting ZIPs and calling the Gemini API with few-shot learning.
+Logic for scanning folders/extracting ZIPs, calling the Gemini API with few-shot learning, and generating JSON/CSV outputs.
 
 #### [x] [examples/](file:///home/albert1t0/Documentos/GitHub/lector-dj/examples/)
 Folder-based category system for "guide" documents.
