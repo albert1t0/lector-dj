@@ -208,9 +208,26 @@ if __name__ == "__main__":
             all_results[f.name] = file_results
 
         output_file = Path(args.output) / "results.json"
-        with open(output_file, "w") as jf:
-            json.dump(all_results, jf, indent=2)
+        with open(output_file, "w", encoding="utf-8") as jf:
+            json.dump(all_results, jf, indent=2, ensure_ascii=False)
+            
+        manifest_file = Path(args.output) / "manifest.csv"
+        import csv
+        with open(manifest_file, "w", newline='', encoding="utf-8") as cf:
+            writer = csv.writer(cf)
+            writer.writerow(["FileName", "PageIdx", "Category", "Confidence", "Reasoning"])
+            for fname, results in all_results.items():
+                for idx, res in enumerate(results):
+                    writer.writerow([
+                        fname, 
+                        idx + 1, 
+                        res.get("category", "UNKNOWN"), 
+                        res.get("confidence", 0.0), 
+                        res.get("reasoning", "")
+                    ])
+                    
         print(f"\nDone! Results saved to {output_file}")
+        print(f"Manifest saved to {manifest_file}")
 
     finally:
         processor.cleanup()
