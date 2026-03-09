@@ -5,20 +5,23 @@ import base64
 import json
 from pathlib import Path
 from typing import List, Optional, Dict
-import google.generativeai as genai
+from openai import OpenAI
 from PIL import Image
 from pdf2image import convert_from_path
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def encode_image(image_path: Path) -> str:
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
 class ClassificationAgent:
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            raise ValueError("GOOGLE_API_KEY not found in environment variables.")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name)
+    def __init__(self, model_name: str = "local-model"):
+        api_key = os.getenv("OPENAI_API_KEY", "dummy-key")
+        base_url = os.getenv("OPENAI_BASE_URL", "http://localhost:1234/v1")
+        self.client = OpenAI(base_url=base_url, api_key=api_key)
+        self.model_name = os.getenv("OPENAI_MODEL_NAME", model_name)
         self.examples_cache: List[Dict] = []
 
     def load_examples(self, examples_dir: Path):
@@ -33,19 +36,33 @@ class ClassificationAgent:
                 category = category_dir.name
                 for example_file in category_dir.iterdir():
                     if example_file.suffix.lower() in {".jpg", ".jpeg", ".png"}:
-                        img = Image.open(example_file)
+                        base64_image = encode_image(example_file)
+                        mime_type = "image/jpeg" if example_file.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
+                        
                         self.examples_cache.append({
                             "role": "user",
-                            "parts": [img, f"This is an example of a {category}."]
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"This is an example of a {category}."
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:{mime_type};base64,{base64_image}"
+                                    }
+                                }
+                            ]
                         })
                         self.examples_cache.append({
-                            "role": "model",
-                            "parts": [f"Understood. This is a {category}."]
+                            "role": "assistant",
+                            "content": f"Understood. This is a {category}."
                         })
 
     def classify(self, file_path: Path) -> Dict:
-        """Classifies a document image using Gemini."""
-        img = Image.open(file_path)
+        """Classifies a document image using an OpenAI compatible local server."""
+        base64_image = encode_image(file_path)
+        mime_type = "image/jpeg" if file_path.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
         
         prompt = """
         Analyze this document and classify it into one of the following categories:
@@ -63,23 +80,41 @@ class ClassificationAgent:
         }
         """
 
-        # Build chat history with examples
-        chat = self.model.start_chat(history=self.examples_cache)
-        response = chat.send_message([img, prompt])
+        messages = self.examples_cache.copy()
+        messages.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": prompt
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{mime_type};base64,{base64_image}"
+                    }
+                }
+            ]
+        })
         
         try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=0.0
+            )
             # Extract JSON from response (handling potential markdown formatting)
-            text = response.text.strip()
+            text = response.choices[0].message.content.strip()
             if "```json" in text:
                 text = text.split("```json")[1].split("```")[0].strip()
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0].strip()
             return json.loads(text)
-        except (ValueError, json.JSONDecodeError, IndexError):
+        except (ValueError, json.JSONDecodeError, IndexError, Exception) as e:
             return {
                 "category": "UNKNOWN",
                 "confidence": 0.0,
-                "reasoning": f"Failed to parse response: {response.text}"
+                "reasoning": f"Failed to parse response: {e}"
             }
 
 class DocumentProcessor:

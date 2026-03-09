@@ -7,13 +7,13 @@ import os
 import json
 
 @pytest.fixture
-def mock_genai():
-    with patch("main.genai") as mock:
+def mock_openai():
+    with patch("main.OpenAI") as mock:
         yield mock
 
 @pytest.fixture
-def agent(mock_genai):
-    os.environ["GOOGLE_API_KEY"] = "fake_key"
+def agent(mock_openai):
+    os.environ["OPENAI_API_KEY"] = "fake_key"
     return ClassificationAgent()
 
 def test_load_examples(agent, tmp_path):
@@ -29,15 +29,17 @@ def test_load_examples(agent, tmp_path):
     
     agent.load_examples(examples_dir)
     
-    # Check if examples were loaded (2 messages per example: user and model)
+    # Check if examples were loaded (2 messages per example: user and assistant)
     assert len(agent.examples_cache) == 2
-    assert agent.examples_cache[0]["parts"][1] == "This is an example of a ID."
+    assert agent.examples_cache[0]["content"][0]["text"] == "This is an example of a ID."
 
-def test_classify_success(agent, tmp_path, mock_genai):
+def test_classify_success(agent, tmp_path, mock_openai):
     # Setup mock response
     mock_response = MagicMock()
-    mock_response.text = '```json {"category": "INVOICE", "confidence": 0.95, "reasoning": "Looks like a bill"} ```'
-    agent.model.start_chat().send_message.return_value = mock_response
+    mock_choice = MagicMock()
+    mock_choice.message.content = '```json {"category": "INVOICE", "confidence": 0.95, "reasoning": "Looks like a bill"} ```'
+    mock_response.choices = [mock_choice]
+    agent.client.chat.completions.create.return_value = mock_response
     
     img_path = tmp_path / "test.jpg"
     img = Image.new('RGB', (10, 10), color='blue')
@@ -48,10 +50,12 @@ def test_classify_success(agent, tmp_path, mock_genai):
     assert result["category"] == "INVOICE"
     assert result["confidence"] == 0.95
 
-def test_classify_failure_parsing(agent, tmp_path, mock_genai):
+def test_classify_failure_parsing(agent, tmp_path, mock_openai):
     mock_response = MagicMock()
-    mock_response.text = 'This is not JSON'
-    agent.model.start_chat().send_message.return_value = mock_response
+    mock_choice = MagicMock()
+    mock_choice.message.content = 'This is not JSON'
+    mock_response.choices = [mock_choice]
+    agent.client.chat.completions.create.return_value = mock_response
     
     img_path = tmp_path / "test.jpg"
     img = Image.new('RGB', (10, 10))
@@ -62,7 +66,7 @@ def test_classify_failure_parsing(agent, tmp_path, mock_genai):
     assert result["category"] == "UNKNOWN"
     assert result["confidence"] == 0.0
 
-def test_document_processor_with_pdf(tmp_path, mock_genai):
+def test_document_processor_with_pdf(tmp_path, mock_openai):
     input_dir = tmp_path / "input"
     input_dir.mkdir()
     output_dir = tmp_path / "output"
