@@ -1,0 +1,4 @@
+# Project instructions
+
+- Always remember to use the `lector-dj` conda environment when working on this project.
+- To activate it, run `conda activate lector-dj`.
